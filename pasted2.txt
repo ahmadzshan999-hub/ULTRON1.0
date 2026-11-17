@@ -1,0 +1,238 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ULTRON — Your AI Assistant</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#080b14;--panel:#101625;--purple:#9365ff;--cyan:#35e0d0;--text:#f3f5ff;--muted:#929bb2}
+body{font-family:Inter,Arial,sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+button,input{font:inherit}
+button{cursor:pointer;border:0}
+.app{display:flex;min-height:100vh}
+.sidebar{width:255px;background:#0c1120;border-right:1px solid #202941;padding:24px 17px;display:flex;flex-direction:column;gap:25px}
+.logo{font-size:25px;font-weight:900;letter-spacing:4px;background:linear-gradient(90deg,var(--purple),var(--cyan));background-clip:text;color:transparent}
+.tagline{font-size:11px;color:var(--muted);letter-spacing:2px;margin-top:5px}
+.new-chat,.side-button{width:100%;padding:13px;border-radius:11px;text-align:left;background:#171f32;color:white;margin-top:8px}
+.new-chat{background:linear-gradient(100deg,#7650db,#287f91);font-weight:700}
+.side-button:hover,.new-chat:hover{filter:brightness(1.2)}
+.side-label{font-size:11px;color:var(--muted);letter-spacing:1.5px;margin-bottom:8px}
+.sidebar-bottom{margin-top:auto}
+.plan-small{background:#151d30;border:1px solid #28334e;padding:15px;border-radius:13px;font-size:13px;line-height:1.8}
+.main{flex:1;display:flex;flex-direction:column;min-width:0}
+.topbar{height:70px;border-bottom:1px solid #202941;display:flex;align-items:center;justify-content:space-between;padding:0 30px}
+.topbar span{color:var(--muted);font-size:13px}
+.top-actions{display:flex;gap:10px;align-items:center}
+.small-btn{padding:9px 14px;border-radius:9px;background:#192238;color:white;border:1px solid #293651}
+.content{width:min(900px,100%);margin:auto;padding:35px 24px;flex:1;display:flex;flex-direction:column}
+.welcome{text-align:center;margin:auto auto 30px}
+.welcome h1{font-size:clamp(35px,6vw,58px);margin-bottom:13px;letter-spacing:-2px}
+.gradient{background:linear-gradient(90deg,#a17aff,#45e5d4);background-clip:text;color:transparent}
+.welcome p{color:var(--muted);line-height:1.7}
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:25px 0}
+.prompt-card{background:var(--panel);border:1px solid #26314a;border-radius:13px;padding:17px;color:white;text-align:left;line-height:1.5}
+.prompt-card:hover{border-color:var(--purple);transform:translateY(-2px)}
+.prompt-card b{display:block;margin-bottom:7px}
+.prompt-card small{color:var(--muted)}
+.chat-area{display:flex;flex-direction:column;gap:18px;margin-bottom:25px}
+.message{padding:15px 18px;border-radius:14px;max-width:85%;line-height:1.65;white-space:pre-wrap}
+.user{align-self:flex-end;background:#29204c;border:1px solid #59428e}
+.bot{align-self:flex-start;background:#141d2e;border:1px solid #283550}
+.input-wrap{position:sticky;bottom:15px;background:#111a2a;border:1px solid #35425f;border-radius:16px;padding:10px;display:flex;gap:10px;box-shadow:0 10px 40px #0008}
+.input-wrap input{flex:1;background:transparent;border:0;outline:0;color:white;padding:12px;min-width:0}
+.send{background:linear-gradient(100deg,var(--purple),#397f9a);color:white;padding:0 20px;border-radius:10px;font-weight:bold}
+.disclaimer{text-align:center;color:#778198;font-size:11px;margin-top:12px}
+.page{display:none}
+.page.active{display:block}
+.chat-page{display:flex;flex-direction:column;flex:1}
+.chat-page .chat-area{flex:1;overflow:auto}
+.section-title{font-size:32px;margin-bottom:10px}
+.section-desc{color:var(--muted);margin-bottom:25px;line-height:1.6}
+.pricing{display:grid;grid-template-columns:repeat(3,1fr);gap:15px}
+.price-card{background:var(--panel);border:1px solid #293650;border-radius:18px;padding:23px;display:flex;flex-direction:column;gap:15px}
+.price-card.featured{border-color:var(--purple);box-shadow:0 0 25px #865aff20}
+.price-card h3{font-size:21px}
+.price{font-size:32px;font-weight:800}
+.price small{font-size:13px;color:var(--muted);font-weight:400}
+.features{list-style:none;color:#c1c9da;line-height:2.3;font-size:14px;flex:1}
+.primary{padding:12px;border-radius:10px;background:linear-gradient(100deg,var(--purple),#287f91);color:white;font-weight:700}
+.login-box{max-width:420px;margin:50px auto;background:var(--panel);border:1px solid #293650;padding:27px;border-radius:17px}
+.login-box h2{margin-bottom:10px}
+.login-box p{color:var(--muted);font-size:13px;margin-bottom:20px}
+.login-box input{width:100%;padding:13px;background:#080e1b;border:1px solid #34415c;border-radius:9px;color:white;margin-bottom:12px}
+.login-box button{width:100%}
+.notice{padding:13px;border-radius:10px;background:#171f32;color:#aeb9ce;font-size:13px;line-height:1.6;margin-top:18px}
+@media(max-width:750px){
+.sidebar{width:70px;padding:20px 9px}
+.logo{font-size:14px;letter-spacing:1px}
+.tagline,.side-label,.side-button span,.plan-small{display:none}
+.side-button,.new-chat{text-align:center;padding:12px 5px;font-size:12px}
+.topbar{padding:0 14px}
+.content{padding:25px 14px}
+.cards,.pricing{grid-template-columns:1fr}
+.welcome{margin-top:50px}
+.message{max-width:95%}
+}
+</style>
+</head>
+<body>
+<div class="app">
+<aside class="sidebar">
+  <div>
+    <div class="logo">ULTRON</div>
+    <div class="tagline">INTELLIGENCE REDEFINED</div>
+  </div>
+  <button class="new-chat" onclick="newChat()">＋ <span>New chat</span></button>
+  <div>
+    <div class="side-label">WORKSPACE</div>
+    <button class="side-button" onclick="showPage('chat')">💬 <span>AI Assistant</span></button>
+    <button class="side-button" onclick="showPage('pricing')">✦ <span>Subscriptions</span></button>
+    <button class="side-button" onclick="showPage('account')">◉ <span>My Account</span></button>
+  </div>
+  <div class="sidebar-bottom">
+    <div class="plan-small">
+      <b>YOUR PLAN</b><br>
+      <span id="sidebarPlan">Free Plan</span><br>
+      <span style="color:#929bb2">Explore ULTRON Plus</span>
+      <button class="primary" style="width:100%;margin-top:10px" onclick="showPage('pricing')">View plans</button>
+    </div>
+  </div>
+</aside>
+
+<main class="main">
+<header class="topbar">
+  <span id="pageName">AI Assistant</span>
+  <div class="top-actions">
+    <button class="small-btn" onclick="showPage('pricing')">Upgrade ✦</button>
+    <button class="small-btn" onclick="showPage('account')">Account</button>
+  </div>
+</header>
+
+<div class="content">
+<section class="page active chat-page" id="chat">
+  <div class="welcome" id="welcome">
+    <h1>Meet <span class="gradient">ULTRON.</span></h1>
+    <p>Your ideas. Your questions. Your next big move.<br>What would you like to explore today?</p>
+    <div class="cards">
+      <button class="prompt-card" onclick="usePrompt('Help me create a business idea')"><b>💡 Business ideas</b><small>Explore your next opportunity</small></button>
+      <button class="prompt-card" onclick="usePrompt('Explain artificial intelligence simply')"><b>🧠 Learn something</b><small>Understand difficult topics</small></button>
+      <button class="prompt-card" onclick="usePrompt('Write a professional website description')"><b>✍️ Create something</b><small>Turn your ideas into words</small></button>
+    </div>
+  </div>
+  <div class="chat-area" id="messages"></div>
+  <div>
+    <div class="input-wrap">
+      <input id="messageInput" placeholder="Message ULTRON..." onkeydown="if(event.key==='Enter')sendMessage()">
+      <button class="send" onclick="sendMessage()">Send ➤</button>
+    </div>
+    <div class="disclaimer">ULTRON demo interface. Connect a secure AI backend for live AI responses.</div>
+  </div>
+</section>
+
+<section class="page" id="pricing">
+  <h1 class="section-title">Choose your <span class="gradient">power.</span></h1>
+  <p class="section-desc">Upgrade your experience and unlock more possibilities.</p>
+  <div class="pricing">
+    <div class="price-card">
+      <h3>Free</h3><div class="price">$0 <small>/ month</small></div>
+      <ul class="features"><li>✓ Basic AI interface</li><li>✓ Limited usage</li><li>✓ Standard experience</li><li>✓ Chat history demo</li></ul>
+      <button class="primary" onclick="selectPlan('Free')">Current plan</button>
+    </div>
+    <div class="price-card featured">
+      <h3>Plus ✦</h3><div class="price">$9.99 <small>/ month</small></div>
+      <ul class="features"><li>✓ Higher usage limits</li><li>✓ Advanced AI access</li><li>✓ Image generation access</li><li>✓ Priority features</li></ul>
+      <button class="primary" onclick="subscribe('Plus')">Choose Plus</button>
+    </div>
+    <div class="price-card">
+      <h3>Pro</h3><div class="price">$19.99 <small>/ month</small></div>
+      <ul class="features"><li>✓ Everything in Plus</li><li>✓ Higher usage limits</li><li>✓ Pro-level features</li><li>✓ Priority support</li></ul>
+      <button class="primary" onclick="subscribe('Pro')">Choose Pro</button>
+    </div>
+  </div>
+  <div class="notice">Demo pricing only. Payment buttons are not connected to a payment provider. Configure real prices and secure checkout on your backend before accepting payments.</div>
+</section>
+
+<section class="page" id="account">
+  <h1 class="section-title">Your <span class="gradient">account.</span></h1>
+  <p class="section-desc">Manage your ULTRON profile.</p>
+  <div class="login-box" style="margin:0">
+    <h2>Account details</h2>
+    <p>This is a local demo profile, not a secure account.</p>
+    <label style="font-size:13px;color:var(--muted)">Display name</label>
+    <input id="displayName" placeholder="Your name">
+    <label style="font-size:13px;color:var(--muted)">Email address</label>
+    <input id="email" type="email" placeholder="Your email">
+    <button class="primary" onclick="saveAccount()">Save profile</button>
+    <div class="notice" id="accountStatus">Current plan: Free</div>
+  </div>
+</section>
+</div>
+</main>
+</div>
+
+<script>
+let currentPlan = "Free";
+
+function showPage(page){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById(page).classList.add('active');
+  const names={chat:'AI Assistant',pricing:'Subscriptions',account:'My Account'};
+  document.getElementById('pageName').textContent=names[page];
+}
+
+function newChat(){
+  document.getElementById('messages').innerHTML='';
+  document.getElementById('welcome').style.display='block';
+  showPage('chat');
+}
+
+function usePrompt(text){
+  document.getElementById('messageInput').value=text;
+  sendMessage();
+}
+
+function sendMessage(){
+  const input=document.getElementById('messageInput');
+  const value=input.value.trim();
+  if(!value)return;
+
+  document.getElementById('welcome').style.display='none';
+  const messages=document.getElementById('messages');
+
+  const user=document.createElement('div');
+  user.className='message user';
+  user.textContent=value;
+  messages.appendChild(user);
+
+  const reply=document.createElement('div');
+  reply.className='message bot';
+  reply.textContent="ULTRON is currently running in demo mode. Connect your OpenAI API through a secure backend to enable real AI conversations. Your interface is ready for that connection.";
+  messages.appendChild(reply);
+
+  input.value='';
+  messages.scrollTop=messages.scrollHeight;
+}
+
+function selectPlan(plan){
+  currentPlan=plan;
+  document.getElementById('sidebarPlan').textContent=plan+' Plan';
+  document.getElementById('accountStatus').textContent='Current plan: '+plan;
+  alert('Your demo plan is now '+plan+'. This does not activate a paid subscription.');
+}
+
+function subscribe(plan){
+  alert('The '+plan+' checkout is not connected yet. A secure payment backend and payment-provider setup are required.');
+}
+
+function saveAccount(){
+  const name=document.getElementById('displayName').value.trim();
+  const email=document.getElementById('email').value.trim();
+  if(!name||!email){alert('Please enter your name and email.');return;}
+  document.getElementById('accountStatus').textContent='Profile details entered for this demo. They are not securely saved.';
+  alert('Demo profile updated.');
+}
+</script>
+</body>
+</html>
